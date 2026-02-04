@@ -83,5 +83,34 @@ def url_detail(url_id):
 
     return render_template('url.html', url=url)
 
+@app.route('/urls/<int:id>/checks', methods=['POST'])
+def url_check(id):
+    try:
+        con = get_db_connection()
+        cur = con.cursor()
+        created_at = datetime.datetime.now()
+
+        # Вставляем новую запись
+        cur.execute(
+            """
+            INSERT INTO url_checks (url_id, created_at)
+            VALUES (%s, %s)
+            RETURNING id, created_at
+            """,
+            (id, created_at)
+        )
+        new_check = cur.fetchone()
+        con.commit()
+        cur.close()
+        con.close()
+
+        return jsonify({
+            "id": new_check[0],
+            "created_at": new_check[1].isoformat()
+        }), 201
+    except Exception as e:
+        # Можно добавить обработку ошибок
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)

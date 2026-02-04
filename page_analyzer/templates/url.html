@@ -9,6 +9,29 @@
     <h1 data-test="url">URL {{ url[0] }}</h1>
     <p><strong>URL:</strong> {{ url[1] }}</p>
     <p><strong>Создано:</strong> {{ url[2] }}</p>
+
+    <h3>Проверки сайта:</h3>
+    <ul>
+        {% for check in checks %}
+            <li>ID: {{ check.id }}, Дата: {{ check.created_at }}</li>
+        {% empty %}
+            <li>Нет проверок</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Дата последней проверки:</h3>
+    <p>
+        {% if last_check %}
+            {{ last_check.created_at }}
+        {% else %}
+            Нет проверок
+        {% endif %}
+    </p>
+
+    <form method="post" action="/urls/{{ url.id }}/checks" data-test="checks">
+        <button type="submit" class="btn btn-primary">Проверить сайт</button>
+    </form>
+    
     <a href="{{ url_for('urls_list') }}">Назад к списку</a>
 </body>
 </html>
