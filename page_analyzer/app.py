@@ -125,17 +125,21 @@ def urls_list():
 def url_detail(url_id):
     con = get_db_connection()
     try:
-        with con.cursor() as cur:
-            cur.execute("SELECT id, name, created_at FROM " \
-            "urls WHERE id=%s", (url_id,))
-            row = cur.fetchone()
-        if not row:
-            flash("URL не найден", 'error')
-            return redirect(url_for('urls_list'))
-        url = {'id': row[0], 'name': row[1], 'created_at': row[2]}
+        with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+            cur.execute("SELECT id, name, created_at FROM urls WHERE id=%s", (url_id,))
+            url = cur.fetchone()
+
+            # Получаем все проверки этого URL
+            cur.execute("SELECT id, status_code, title, h1, meta_description, created_at FROM url_checks WHERE url_id=%s ORDER BY created_at DESC", (url_id,))
+            checks = cur.fetchall()
     finally:
         con.close()
-    return render_template('url.html', url=url)
+
+    if not url:
+        flash("URL не найден", 'error')
+        return redirect(url_for('urls_list'))
+
+    return render_template('url.html', url=url, checks=checks)
 
 
 @app.route('/urls/<int:id>/checks', methods=['POST'])
