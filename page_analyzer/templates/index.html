@@ -16,8 +16,8 @@
         <div class="alert alert-{{category}}">{{ message }}</div>
       {% endfor %}
     {% endif %}
+    
   {% endwith %}
-  
   <form method="post" action="{{ url_for('index') }}" class="mb-4">
     <div class="mb-3">
       <label for="url" class="form-label">URL сайта</label>

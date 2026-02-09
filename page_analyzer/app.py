@@ -82,7 +82,7 @@ def index():
         try:
             with con.cursor() as cur:
                 cur.execute(
-                    "INSERT INTO urls (name) VALUES (%s) ON " \
+                    "INSERT INTO urls (name) VALUES (%s) ON "
                     "CONFLICT (name) DO NOTHING RETURNING id",
                     (url_input,)
                 )
@@ -113,7 +113,7 @@ def urls_list():
     con = get_db_connection()
     try:
         with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-            cur.execute("SELECT id, name, created_at FROM " \
+            cur.execute("SELECT id, name, created_at FROM "
             "urls ORDER BY created_at DESC")
             urls = cur.fetchall()
     finally:
@@ -126,11 +126,14 @@ def url_detail(url_id):
     con = get_db_connection()
     try:
         with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-            cur.execute("SELECT id, name, created_at FROM urls WHERE id=%s", (url_id,))
+            cur.execute("SELECT id, name, created_at FROM"
+            " urls WHERE id=%s", (url_id,))
             url = cur.fetchone()
 
             # Получаем все проверки этого URL
-            cur.execute("SELECT id, status_code, title, h1, meta_description, created_at FROM url_checks WHERE url_id=%s ORDER BY created_at DESC", (url_id,))
+            cur.execute("SELECT id, status_code, title, h1, "
+            "meta_description, created_at FROM url_checks WHERE"
+            " url_id=%s ORDER BY created_at DESC", (url_id,))
             checks = cur.fetchall()
     finally:
         con.close()

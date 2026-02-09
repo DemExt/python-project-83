@@ -1,4 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column
+from sqlalchemy import Integer,String, DateTime, ForeignKey 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 import datetime
@@ -9,6 +10,7 @@ engine = create_engine(SQLALCHEMY_DATABASE_URI, echo=True)
 SessionLocal = sessionmaker(bind=engine)
 
 Base = declarative_base()
+
 
 class Check(Base):
     __tablename__ = 'checks'
@@ -31,6 +33,7 @@ class Url(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     checks = relationship('Check', back_populates='url', cascade='all, delete')
+
 
 # Создайте таблицы, если еще не существуют
 Base.metadata.create_all(bind=engine)
