@@ -14,3 +14,6 @@ build:
 render-start:
 	PORT=8000
 	gunicorn -w 5 -b 0.0.0.0:$(PORT) page_analyzer:app
+
+make lint:
+	uv run ruff check --fix

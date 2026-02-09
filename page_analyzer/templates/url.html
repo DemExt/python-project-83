@@ -13,7 +13,7 @@
   <p>Добавлен: {{ url['created_at'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
 
   <!-- Кнопка "Проверить" -->
-<form method="post" action="{{ url_for('check_url', id=url.id) }}" style="display:inline;">
+<form method="post" action="{{ url_for('url_check', id=url.id) }}" style="display:inline;">
   <button type="submit" class="btn btn-primary">Провести проверку</button>
 </form>
 
@@ -54,7 +54,7 @@
 <p>Нет проверок для этого сайта.</p>
 {% endif %}
   
-  <a href="{{ url_for('list_urls') }}" class="btn btn-secondary">Назад к списку</a>
+  <a href="{{ url_for('urls_list') }}" class="btn btn-secondary">Назад к списку</a>
 </div>
 </body>
 </html>
