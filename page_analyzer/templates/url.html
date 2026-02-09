@@ -1,37 +1,60 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <title>URL {{ url[0] }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Детали сайта</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
-<body class="container mt-4">
-    <h1 data-test="url">URL {{ url[0] }}</h1>
-    <p><strong>URL:</strong> {{ url[1] }}</p>
-    <p><strong>Создано:</strong> {{ url[2] }}</p>
+<body>
+<div class="container py-4">
+  <h1>Сайт: {{ url.name }}</h1>
+  <p>ID: {{ url.id }}</p>
+  <p>Добавлен: {{ url.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
 
-    <h3>Проверки сайта:</h3>
-    <ul>
-        {% for check in checks %}
-            <li>ID: {{ check.id }}, Дата: {{ check.created_at }}</li>
-        {% empty %}
-            <li>Нет проверок</li>
-        {% endfor %}
-    </ul>
+  <!-- Кнопка "Проверить" -->
+<form method="post" action="{{ url_for('check_url', id=url.id) }}" style="display:inline;">
+  <button type="submit" class="btn btn-primary">Провести проверку</button>
+</form>
 
-    <h3>Дата последней проверки:</h3>
-    <p>
-        {% if last_check %}
-            {{ last_check.created_at }}
+<!-- История проверок -->
+<h2 class="mt-4">История проверок</h2>
+{% if url.checks %}
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Код статуса</th>
+      <th>Заголовок</th>
+      <th>H1</th>
+      <th>Description</th>
+      <th>Дата проверки</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for check in url.checks %}
+    <tr>
+      <td>{{ check.id }}</td>
+      <td>
+        {% if check.status_code %}
+          {{ check.status_code }}
         {% else %}
-            Нет проверок
+          Ошибка
         {% endif %}
-    </p>
-
-    <form method="post" action="/urls/{{ url.id }}/checks" data-test="checks">
-        <button type="submit" class="btn btn-primary">Проверить сайт</button>
-    </form>
-    
-    <a href="{{ url_for('urls_list') }}">Назад к списку</a>
+      </td>
+      <td>{{ check.title or "Нет данных" }}</td>
+      <td>{{ check.h1 or "Нет данных" }}</td>
+      <td>{{ check.meta_description or "Нет данных" }}</td>
+      <td>{{ check.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Нет проверок для этого сайта.</p>
+{% endif %}
+  
+  <a href="{{ url_for('list_urls') }}" class="btn btn-secondary">Назад к списку</a>
+</div>
 </body>
 </html>
