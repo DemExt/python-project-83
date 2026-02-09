@@ -184,14 +184,15 @@ def url_detail(url_id):
     con = get_db_connection()
     cur = con.cursor()
     cur.execute("SELECT id, name, created_at FROM urls WHERE id=%s", (url_id,))
-    url = cur.fetchone()
+    row = cur.fetchone()
     cur.close()
     con.close()
 
-    if not url:
+    if not row:
         flash("URL не найден", 'error')
         return redirect(url_for('urls_list'))
 
+    url = {'id': row[0], 'name': row[1], 'created_at': row[2]}
     return render_template('url.html', url=url)
 
 @app.route('/urls/<int:id>/checks', methods=['POST'])

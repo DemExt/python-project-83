@@ -10,7 +10,7 @@
 <div class="container py-4">
   <h1>Сайт: {{ url.name }}</h1>
   <p>ID: {{ url.id }}</p>
-  <p>Добавлен: {{ url.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+  <p>Добавлен: {{ url['created_at'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
 
   <!-- Кнопка "Проверить" -->
 <form method="post" action="{{ url_for('check_url', id=url.id) }}" style="display:inline;">
