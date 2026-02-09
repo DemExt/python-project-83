@@ -9,6 +9,7 @@
 <body>
 <div class="container py-4">
   <h1 class="mb-4">Добавить сайт</h1>
+
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for category, message in messages %}
@@ -16,6 +17,7 @@
       {% endfor %}
     {% endif %}
   {% endwith %}
+  
   <form method="post" action="{{ url_for('index') }}" class="mb-4">
     <div class="mb-3">
       <label for="url" class="form-label">URL сайта</label>

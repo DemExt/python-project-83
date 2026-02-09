@@ -16,9 +16,11 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 
+
 # Функция соединения с базой
 def get_db_connection():
     return psycopg2.connect(os.getenv('DATABASE_URL'))
+
 
 def perform_check(url):
     """
@@ -52,6 +54,7 @@ def perform_check(url):
         return {'status_code': None}
     return result
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -79,10 +82,11 @@ def index():
         try:
             with con.cursor() as cur:
                 cur.execute(
-                    "INSERT INTO urls (name) VALUES (%s) ON CONFLICT (name) DO NOTHING RETURNING id",
+                    "INSERT INTO urls (name) VALUES (%s) ON " \
+                    "CONFLICT (name) DO NOTHING RETURNING id",
                     (url_input,)
                 )
-                inserted = cur.fetchone()  # Возвращается только, если вставка произошла
+                inserted = cur.fetchone()
                 con.commit()
 
             if inserted:
@@ -103,23 +107,27 @@ def index():
         return redirect(url_for('urls_list'))
     return render_template('index.html')
 
+
 @app.route('/urls')
 def urls_list():
     con = get_db_connection()
     try:
         with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-            cur.execute("SELECT id, name, created_at FROM urls ORDER BY created_at DESC")
+            cur.execute("SELECT id, name, created_at FROM " \
+            "urls ORDER BY created_at DESC")
             urls = cur.fetchall()
     finally:
         con.close()
     return render_template('urls.html', urls=urls)
+
 
 @app.route('/urls/<int:url_id>')
 def url_detail(url_id):
     con = get_db_connection()
     try:
         with con.cursor() as cur:
-            cur.execute("SELECT id, name, created_at FROM urls WHERE id=%s", (url_id,))
+            cur.execute("SELECT id, name, created_at FROM " \
+            "urls WHERE id=%s", (url_id,))
             row = cur.fetchone()
         if not row:
             flash("URL не найден", 'error')
@@ -128,6 +136,7 @@ def url_detail(url_id):
     finally:
         con.close()
     return render_template('url.html', url=url)
+
 
 @app.route('/urls/<int:id>/checks', methods=['POST'])
 def url_check(id):
@@ -157,7 +166,8 @@ def url_check(id):
             # Вставка новой проверки
             cur.execute(
                 """
-                INSERT INTO url_checks (url_id, status_code, title, h1, meta_description, created_at)
+                INSERT INTO url_checks (url_id, status_code, 
+                title, h1, meta_description, created_at)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """,
@@ -177,11 +187,13 @@ def url_check(id):
     flash('Проверка выполнена', 'success')
     return redirect(url_for('url_detail', url_id=id))
 
-# Регулярное выражение для поиска шаблона: три буквы, двоеточие, те же три буквы
+
 pattern = r'([a-z]{3}):\1'
+
 
 def find_matches(text):
     return re.findall(pattern, text)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
