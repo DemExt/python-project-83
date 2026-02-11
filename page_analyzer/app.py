@@ -163,9 +163,9 @@ def url_check(id):
             # Выполнить проверку
             try:
                 response = requests.get(url_name, timeout=10)
-                status_code = response.status_code
+                response.status_code
             except requests.RequestException:
-                status_code = None
+                None
 
             # Выполнить perform_check для парсинга
             result = perform_check(url_name)
