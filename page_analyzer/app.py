@@ -114,7 +114,7 @@ def urls_list():
     try:
         with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             cur.execute("SELECT id, name, created_at FROM "
-            "urls ORDER BY created_at DESC")
+                        "urls ORDER BY created_at DESC")
             urls = cur.fetchall()
     finally:
         con.close()
@@ -127,13 +127,13 @@ def url_detail(url_id):
     try:
         with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             cur.execute("SELECT id, name, created_at FROM"
-            " urls WHERE id=%s", (url_id,))
+                        " urls WHERE id=%s", (url_id,))
             url = cur.fetchone()
 
             # Получаем все проверки этого URL
             cur.execute("SELECT id, status_code, title, h1, "
-            "meta_description, created_at FROM url_checks WHERE"
-            " url_id=%s ORDER BY created_at DESC", (url_id,))
+                        "meta_description, created_at FROM url_checks WHERE"
+                        " url_id=%s ORDER BY created_at DESC", (url_id,))
             checks = cur.fetchall()
     finally:
         con.close()
@@ -173,10 +173,16 @@ def url_check(id):
             # Вставка новой проверки
             cur.execute(
                 """
-                INSERT INTO url_checks (url_id, status_code, 
-                title, h1, meta_description, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                RETURNING id
+                "INSERT INTO url_checks ("
+                "url_id, "
+                "status_code, "
+                "title, "
+                "h1, "
+                "meta_description, "
+                "created_at"
+                ") "
+                "VALUES (%s, %s, %s, %s, %s, %s) "
+                "RETURNING id"
                 """,
                 (
                     id,
@@ -204,3 +210,4 @@ def find_matches(text):
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
