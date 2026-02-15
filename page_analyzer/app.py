@@ -172,18 +172,18 @@ def url_check(id):
 
             # Вставка новой проверки
             cur.execute(
-            """
-            INSERT INTO url_checks (
-                url_id,
-                status_code,
-                title,
-                h1,
-                meta_description,
-                created_at
-            )
-            VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING id
-            """,
+                        """
+                        INSERT INTO url_checks (
+                            url_id,
+                            status_code,
+                            title,
+                            h1,
+                            meta_description,
+                            created_at
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                        RETURNING id
+                        """,
                 (
                     id,
                     result['status_code'],
