@@ -184,14 +184,14 @@ def url_check(id):
                         VALUES (%s, %s, %s, %s, %s, %s)
                         RETURNING id
                         """,
-                    (
-                    id,
-                    result['status_code'],
-                    result['title'],
-                    result['h1'],
-                    result['meta_description'],
-                    created_at
-                    )
+                        (
+                            id,
+                            result['status_code'],
+                            result['title'],
+                            result['h1'],
+                            result['meta_description'],
+                            created_at
+                        )
             )
             con.commit()
     finally:
