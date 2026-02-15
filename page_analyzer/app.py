@@ -174,14 +174,14 @@ def url_check(id):
             cur.execute(
             """
             INSERT INTO url_checks (
-                url_id, 
-                status_code, 
-                title, 
-                h1, 
-                meta_description, 
+                url_id,
+                status_code,
+                title,
+                h1,
+                meta_description,
                 created_at
-            ) 
-            VALUES (%s, %s, %s, %s, %s, %s) 
+            )
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
                 (
