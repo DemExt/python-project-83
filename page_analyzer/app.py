@@ -51,7 +51,12 @@ def perform_check(url):
         if meta_desc and meta_desc.get('content'):
             result['meta_description'] = meta_desc['content'].strip()
     except requests.RequestException:
-        return {'status_code': None}
+        return {
+        'status_code': None,
+        'title': None,
+        'h1': None,
+        'meta_description': None,
+        }
     return result
 
 
@@ -82,9 +87,7 @@ def index():
         try:
             with con.cursor() as cur:
                 cur.execute(
-                    "INSERT INTO urls (name) VALUES (%s) ON "
-                    "CONFLICT (name) DO NOTHING RETURNING id",
-                    (url_input,)
+                    "INSERT INTO urls (name) VALUES (%s) ON CONFLICT (name) DO NOTHING RETURNING id", (url_input,)
                 )
                 inserted = cur.fetchone()
                 con.commit()
@@ -113,8 +116,7 @@ def urls_list():
     con = get_db_connection()
     try:
         with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-            cur.execute("SELECT id, name, created_at FROM "
-                        "urls ORDER BY created_at DESC")
+            cur.execute("SELECT id, name, created_at FROM urls ORDER BY created_at DESC")
             urls = cur.fetchall()
     finally:
         con.close()
@@ -131,9 +133,7 @@ def url_detail(url_id):
             url = cur.fetchone()
 
             # Получаем все проверки этого URL
-            cur.execute("SELECT id, status_code, title, h1, "
-                        "meta_description, created_at FROM url_checks WHERE"
-                        " url_id=%s ORDER BY created_at DESC", (url_id,))
+            cur.execute("SELECT id, status_code, title, h1, meta_description, created_at FROM url_checks WHERE url_id=%s ORDER BY created_at DESC", (url_id,))
             checks = cur.fetchall()
     finally:
         con.close()
