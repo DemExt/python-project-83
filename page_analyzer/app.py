@@ -173,12 +173,12 @@ def url_check(id):
             # Проверяем результат перед вставкой в базу
             status_code = result.get('status_code')
 
-            if status_code is None or (isinstance(status_code, int) 
+            if status_code is None or (isinstance(status_code, int)
                                        and status_code >= 400):
                 # Ошибка — не вставляем проверку
                 flash('Произошла ошибка при проверке URL', 'danger')
                 return redirect(url_for('url_detail', url_id=id))
-            
+                     
             # Удаляем все предыдущие проверки для данного url_id
             cur.execute("DELETE FROM url_checks WHERE url_id = %s", (id,))
 
