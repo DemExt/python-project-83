@@ -165,10 +165,19 @@ def url_check(id):
                 response = requests.get(url_name, timeout=10)
                 response.status_code
             except requests.RequestException:
-                None
+                response = None
 
-            # Выполнить perform_check для парсинга
+            # Выполнить perform_check (парсинг страницы)
             result = perform_check(url_name)
+
+            # Проверяем результат перед вставкой в базу
+            status_code = result.get('status_code')
+
+            if status_code is None or (isinstance(status_code, int) and status_code >= 400):
+                # Ошибка — не вставляем проверку
+                flash('Произошла ошибка при проверке URL', 'danger')
+                return redirect(url_for('url_detail', url_id=id))
+
 
             # Вставка новой проверки
             cur.execute(
