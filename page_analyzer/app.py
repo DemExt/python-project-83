@@ -178,7 +178,7 @@ def url_check(id):
                 # Ошибка — не вставляем проверку
                 flash('Произошла ошибка при проверке URL', 'danger')
                 return redirect(url_for('url_detail', url_id=id))
-                     
+
             # Удаляем все предыдущие проверки для данного url_id
             cur.execute("DELETE FROM url_checks WHERE url_id = %s", (id,))
 
