@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="container py-4">
-  <h1 class="mb-4">Добавить сайт</h1>
+  <h1 class="mb-4">Анализатор страниц</h1>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -23,9 +23,9 @@
       <label for="url" class="form-label">URL сайта</label>
       <input type="text" class="form-control" id="url" name="url" placeholder="https://example.com" required maxlength="255" />
     </div>
-    <button type="submit" class="btn btn-primary">Добавить</button>
+    <button type="submit" class="btn btn-primary">Проверить</button>
   </form>
-  <a href="{{ url_for('urls_list') }}" class="btn btn-secondary">Посмотреть все сайты</a>
+  <a href="{{ url_for('urls_list') }}" class="btn btn-secondary">Сайты</a>
 </div>
 </body>
 </html>
