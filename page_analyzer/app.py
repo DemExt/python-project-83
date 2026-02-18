@@ -19,7 +19,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 # Функция соединения с базой
 def get_db_connection():
     conn = sqlite3.connect(os.getenv('SQLALCHEMY_DATABASE_URI', 'db.sqlite3'))
-    conn.row_factory = sqlite3.Row  # Чтобы возвращать словари вместо кортежей
+    conn.row_factory = sqlite3.Row  # Чтобы возвращать словари
     return conn
 
 def perform_check(url):
