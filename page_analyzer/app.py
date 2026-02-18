@@ -1,11 +1,10 @@
 import os
-import psycopg2
-import psycopg2.extras
+import sqlite3
 import validators
 import re
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, flash
-import datetime
+from datetime import datetime
 from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
@@ -19,8 +18,9 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 
 # Функция соединения с базой
 def get_db_connection():
-    return psycopg2.connect(os.getenv('DATABASE_URL'))
-
+    conn = sqlite3.connect(os.getenv('SQLALCHEMY_DATABASE_URI', 'db.sqlite3'))
+    conn.row_factory = sqlite3.Row  # Чтобы возвращать словари вместо кортежей
+    return conn
 
 def perform_check(url):
     """
@@ -74,26 +74,29 @@ def index():
             flash("Некорректный URL", 'error')
             return redirect(url_for('index'))
 
-        # Поиск совпадений
+        # Поиск совпадений, функция find_matches должна быть реализована отдельно
         matches = find_matches(url_input)
 
-        # Вставка в БД
         con = get_db_connection()
         try:
-            with con.cursor() as cur:
-                cur.execute(
-                    "INSERT INTO urls (name) VALUES (%s) ON CONFLICT "
-                    "(name) DO NOTHING RETURNING id", (url_input,)
-                )
-                inserted = cur.fetchone()
-                con.commit()
+            cur = con.cursor()
+            # В SQLite ON CONFLICT доступен с версии 3.24.0 (UPSERT)
+            # Чтобы использовать UPSERT, нужно добавить "ON CONFLICT(name) DO NOTHING"
+            cur.execute(
+                "INSERT INTO urls (name, created_at) VALUES (?, datetime('now')) "
+                "ON CONFLICT(name) DO NOTHING"
+                , (url_input,))
+            con.commit()
 
-            if inserted:
+            # Проверяем было ли добавлено
+            cur.execute("SELECT id FROM urls WHERE name = ?", (url_input,))
+            row = cur.fetchone()
+
+            if row:
                 flash('URL успешно добавлен!', 'success')
             else:
                 flash('Этот URL уже существует', 'info')
 
-            # Отображение совпадений
             if matches:
                 flash(f'Обнаружены шаблоны: {", ".join(matches)}', 'info')
             else:
@@ -111,10 +114,18 @@ def index():
 def urls_list():
     con = get_db_connection()
     try:
-        with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-            cur.execute("SELECT id, name, created_at FROM "
-                        "urls ORDER BY created_at DESC")
-            urls = cur.fetchall()
+        con.row_factory = sqlite3.Row  # чтобы получать словари, а не кортежи
+        cur = con.cursor()
+        cur.execute("SELECT id, name, created_at FROM urls ORDER BY datetime(created_at) DESC")
+        rows = cur.fetchall()
+        
+        urls = []
+        for row in rows:
+            urls.append({
+                'id': row['id'],
+                'name': row['name'],
+                'created_at': datetime.strptime(row['created_at'], '%Y-%m-%d %H:%M:%S')
+            })
     finally:
         con.close()
     return render_template('urls.html', urls=urls)
@@ -124,23 +135,36 @@ def urls_list():
 def url_detail(url_id):
     con = get_db_connection()
     try:
-        with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-            cur.execute("SELECT id, name, created_at FROM"
-                        " urls WHERE id=%s", (url_id,))
-            url = cur.fetchone()
+        con.row_factory = sqlite3.Row  # вернуть строки как словари (Row-подобные)
+        cur = con.cursor()
 
-            # Получаем все проверки этого URL
-            cur.execute("SELECT id, status_code, title, h1, "
-                        "meta_description, created_at FROM "
-                        "url_checks WHERE url_id=%s ORDER BY "
-                        "created_at DESC", (url_id,))
-            checks = cur.fetchall()
+        cur.execute("SELECT id, name, created_at FROM urls WHERE id = ?", (url_id,))
+        url_row = cur.fetchone()
+
+        if not url_row:
+            flash("URL не найден", 'error')
+            return redirect(url_for('urls_list'))
+
+        # Преобразуем Row в обычный словарь и дату в datetime
+        url = dict(url_row)
+        url['created_at'] = datetime.strptime(url['created_at'], '%Y-%m-%d %H:%M:%S')
+
+        cur.execute("""
+            SELECT id, status_code, title, h1, meta_description, created_at 
+            FROM url_checks WHERE url_id = ? ORDER BY datetime(created_at) DESC
+        """, (url_id,))
+        checks_rows = cur.fetchall()
+
+        # Преобразовываем каждый Row в словарь
+        checks = []
+        for row in checks_rows:
+            check = dict(row)
+            # при необходимости можно тоже преобразовать даты проверок:
+            # check['created_at'] = datetime.strptime(check['created_at'], '%Y-%m-%d %H:%M:%S')
+            checks.append(check)
+
     finally:
         con.close()
-
-    if not url:
-        flash("URL не найден", 'error')
-        return redirect(url_for('urls_list'))
 
     return render_template('url.html', url=url, checks=checks)
 
@@ -149,69 +173,37 @@ def url_detail(url_id):
 def url_check(id):
     con = get_db_connection()
     try:
-        with con.cursor() as cur:
-            # Получить URL из базы
-            cur.execute("SELECT id, name FROM urls WHERE id=%s", (id,))
-            url_row = cur.fetchone()
-            if not url_row:
-                flash("URL не найден", 'error')
-                return redirect(url_for('urls_list'))
+        cur = con.cursor()
+        cur.execute("SELECT id, name FROM urls WHERE id = ?", (id,))
+        url_row = cur.fetchone()
+        if not url_row:
+            flash("URL не найден", 'error')
+            return redirect(url_for('urls_list'))
 
-            url_name = url_row[1]
-            created_at = datetime.datetime.now()
+        url_name = url_row['name']
 
-            # Выполнить проверку
-            try:
-                response = requests.get(url_name, timeout=10)
-                response.status_code
-            except requests.RequestException:
-                response = None
+        # Выполняем проверку сайта и получаем данные
+        check_result = perform_check(url_name)
 
-            # Выполнить perform_check (парсинг страницы)
-            result = perform_check(url_name)
+        # Вставляем результаты проверки
+        cur.execute("""
+            INSERT INTO url_checks
+            (url_id, status_code, title, h1, meta_description, created_at)
+            VALUES (?, ?, ?, ?, ?, datetime('now'))
+        """, (id,
+              check_result['status_code'],
+              check_result['title'],
+              check_result['h1'],
+              check_result['meta_description']))
+        con.commit()
 
-            # Проверяем результат перед вставкой в базу
-            status_code = result.get('status_code')
-
-            if status_code is None or (isinstance(status_code, int)
-                                       and status_code >= 400):
-                # Ошибка — не вставляем проверку
-                flash('Произошла ошибка при проверке URL', 'danger')
-                return redirect(url_for('url_detail', url_id=id))
-
-            # Удаляем все предыдущие проверки для данного url_id
-            cur.execute("DELETE FROM url_checks WHERE url_id = %s", (id,))
-
-            # Вставка новой проверки
-            cur.execute(
-                        """
-                        INSERT INTO url_checks (
-                            url_id,
-                            status_code,
-                            title,
-                            h1,
-                            meta_description,
-                            created_at
-                        )
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                        RETURNING id
-                        """,
-                        (
-                            id,
-                            result['status_code'],
-                            result['title'],
-                            result['h1'],
-                            result['meta_description'],
-                            created_at
-                        )
-            )
-            con.commit()
+        flash("Проверка сайта выполнена", "success")
+    except Exception as e:
+        flash(f"Ошибка базы данных: {e}", 'error')
     finally:
         con.close()
 
-    flash('Проверка выполнена', 'success')
     return redirect(url_for('url_detail', url_id=id))
-
 
 pattern = r'([a-z]{3}):\1'
 
