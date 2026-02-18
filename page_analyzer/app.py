@@ -159,8 +159,7 @@ def url_detail(url_id):
         checks = []
         for row in checks_rows:
             check = dict(row)
-            # при необходимости можно тоже преобразовать даты проверок:
-            # check['created_at'] = datetime.strptime(check['created_at'], '%Y-%m-%d %H:%M:%S')
+            check['created_at'] = datetime.strptime(check['created_at'], '%Y-%m-%d %H:%M:%S')
             checks.append(check)
 
     finally:
