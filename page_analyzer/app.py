@@ -74,14 +74,16 @@ def index():
             flash("Некорректный URL", 'error')
             return redirect(url_for('index'))
 
-        # Поиск совпадений, функция find_matches должна быть реализована отдельно
+        # Поиск совпадений, 
+        # функция find_matches должна быть реализована отдельно
         matches = find_matches(url_input)
 
         con = get_db_connection()
         try:
             cur = con.cursor()
             # В SQLite ON CONFLICT доступен с версии 3.24.0 (UPSERT)
-            # Чтобы использовать UPSERT, нужно добавить "ON CONFLICT(name) DO NOTHING"
+            # Чтобы использовать UPSERT, 
+            # нужно добавить "ON CONFLICT(name) DO NOTHING"
             cur.execute(
                 "INSERT INTO urls (name, created_at) VALUES (?, datetime('now')) "
                 "ON CONFLICT(name) DO NOTHING"
@@ -114,7 +116,7 @@ def index():
 def urls_list():
     con = get_db_connection()
     try:
-        con.row_factory = sqlite3.Row  # чтобы получать словари, а не кортежи
+        con.row_factory = sqlite3.Row  # чтобы получать словари
         cur = con.cursor()
         cur.execute("SELECT id, name, created_at FROM urls ORDER BY datetime(created_at) DESC")
         rows = cur.fetchall()
@@ -135,7 +137,7 @@ def urls_list():
 def url_detail(url_id):
     con = get_db_connection()
     try:
-        con.row_factory = sqlite3.Row  # вернуть строки как словари (Row-подобные)
+        con.row_factory = sqlite3.Row  # вернуть строки как словари
         cur = con.cursor()
 
         cur.execute("SELECT id, name, created_at FROM urls WHERE id = ?", (url_id,))
