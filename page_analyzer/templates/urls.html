@@ -23,8 +23,15 @@
       <tr>
         <td>{{ url.id }}</td>
         <td><a href="{{ url_for('url_detail', url_id=url.id) }}">{{ url.name }}</a></td>
-        <td>{{ url.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-        <td>Нет проверок</td>
+        <!-- Если у вас есть свойство last_check_time для каждой ссылки -->
+        <td>
+          {% if url.last_check_time %}
+            {{ url.last_check_time.strftime('%Y-%m-%d %H:%M:%S') }}
+          {% else %}
+            Нет проверок
+          {% endif %}
+        </td>
+        <td>Нет проверок</td> <!-- можете позже заменить на код ответа, если он есть -->
       </tr>
       {% endfor %}
     </tbody>
