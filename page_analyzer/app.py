@@ -53,10 +53,10 @@ def index():
         con = get_db_connection()
         try:
             cur = con.cursor()
-            # Добавляем URL, уникальность по name (если есть уникальный индекс)
-            # В SQLite проверьте, что есть UNIQUE на name, иначе ON CONFLICT не работает
+            # Добавляем URL, уникальность по name
             cur.execute(
-                "INSERT OR IGNORE INTO urls (name, created_at) VALUES (?, datetime('now'))",
+                "INSERT OR IGNORE INTO urls (name, created_at) " 
+                "VALUES (?, datetime('now'))",
                 (url_input,)
             )
             con.commit()
@@ -92,25 +92,29 @@ def urls_list():
     try:
         con.row_factory = sqlite3.Row
         cur = con.cursor()
-        cur.execute("SELECT id, name, created_at FROM urls ORDER BY datetime(created_at) DESC")
+        cur.execute("SELECT id, name, created_at FROM " 
+        "urls ORDER BY datetime(created_at) DESC")
         rows = cur.fetchall()
 
         urls = []
         for row in rows:
             # Получение последней проверки
             cur.execute(
-                "SELECT created_at FROM url_checks WHERE url_id = ? ORDER BY datetime(created_at) DESC LIMIT 1",
+                "SELECT created_at FROM url_checks WHERE url_id = ? " 
+                "ORDER BY datetime(created_at) DESC LIMIT 1",
                 (row['id'],)
             )
             check = cur.fetchone()
             last_check_time = None
             if check:
-                last_check_time = datetime.strptime(check['created_at'], '%Y-%m-%d %H:%M:%S')
+                last_check_time = datetime.strptime(check['created_at'], 
+                                                    '%Y-%m-%d %H:%M:%S')
 
             urls.append({
                 'id': row['id'],
                 'name': row['name'],
-                'created_at': datetime.strptime(row['created_at'], '%Y-%m-%d %H:%M:%S'),
+                'created_at': datetime.strptime(row['created_at'], 
+                                                '%Y-%m-%d %H:%M:%S'),
                 'last_check_time': last_check_time
             })
     finally:
@@ -128,7 +132,8 @@ def url_detail(url_id):
         cur = con.cursor()
 
         # Получение URL
-        cur.execute("SELECT id, name, created_at FROM urls WHERE id = ?", (url_id,))
+        cur.execute("SELECT id, name, created_at FROM " 
+                    "urls WHERE id = ?", (url_id,))
         url_row = cur.fetchone()
         if not url_row:
             flash("URL не найден", 'error')
@@ -137,7 +142,8 @@ def url_detail(url_id):
         url = {
             'id': url_row['id'],
             'name': url_row['name'],
-            'created_at': datetime.strptime(url_row['created_at'], '%Y-%m-%d %H:%M:%S')
+            'created_at': datetime.strptime(url_row['created_at'], 
+                                            '%Y-%m-%d %H:%M:%S')
         }
 
         # Получение проверок
@@ -155,7 +161,8 @@ def url_detail(url_id):
                 'title': row['title'],
                 'h1': row['h1'],
                 'meta_description': row['meta_description'],
-                'created_at': datetime.strptime(row['created_at'], '%Y-%m-%d %H:%M:%S')
+                'created_at': datetime.strptime(row['created_at'], 
+                                                '%Y-%m-%d %H:%M:%S')
             })
 
     finally:
@@ -185,7 +192,8 @@ def url_check(id):
         # Вставляем результат в url_checks
         cur.execute(
             """
-            INSERT INTO url_checks (url_id, status_code, title, h1, meta_description, created_at)
+            INSERT INTO url_checks (url_id, status_code, title, 
+            h1, meta_description, created_at)
             VALUES (?, ?, ?, ?, ?, datetime('now'))
             """,
             (
