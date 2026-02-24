@@ -93,7 +93,7 @@ def urls_list():
         con.row_factory = sqlite3.Row
         cur = con.cursor()
         cur.execute("SELECT id, name, created_at FROM "
-        "urls ORDER BY datetime(created_at) DESC")
+                    "urls ORDER BY datetime(created_at) DESC")
         rows = cur.fetchall()
 
         urls = []
