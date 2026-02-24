@@ -1,8 +1,15 @@
-from sqlalchemy import create_engine, Column
-from sqlalchemy import Integer, String, DateTime, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
 import datetime
+
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    create_engine,
+)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
 
 SQLALCHEMY_DATABASE_URI = 'sqlite:///db.sqlite3'
 

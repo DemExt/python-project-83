@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
+
 def perform_check(url):
     result = {
         'status_code': None,

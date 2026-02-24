@@ -1,15 +1,16 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+import re
+import sqlite3
 from datetime import datetime
-from dotenv import load_dotenv
 from urllib.parse import urlparse
+
+import validators
+from dotenv import load_dotenv
+from flask import Flask, flash, redirect, render_template, request, url_for
 
 from .database import get_db_connection
 from .parser import perform_check
 from .url_normalizer import normalize_url
-import validators
-import sqlite3
-import re
 
 load_dotenv()
 
@@ -18,8 +19,10 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 
 pattern = r'([a-z]{3}):\1'
 
+
 def find_matches(text):
     return re.findall(pattern, text)
+
 
 # Главная страница
 @app.route('/', methods=['GET', 'POST'])
