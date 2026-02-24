@@ -45,20 +45,20 @@ def index():
             return redirect(url_for('index'))
 
         # Проверка совпадений — предполагаемая функция find_matches
-        # Тут вы можете реализовать свою функцию поиска шаблонов
         matches = find_matches(url_input)
 
         con = get_db_connection()
         try:
             cur = con.cursor()
+            # Добавляем URL, уникальность по name (если есть уникальный индекс)
+            # В SQLite проверьте, что есть UNIQUE на name, иначе ON CONFLICT не работает
             cur.execute(
-                "INSERT INTO urls (name, created_at) VALUES (?, datetime('now')) "
-                "ON CONFLICT(name) DO NOTHING",
+                "INSERT OR IGNORE INTO urls (name, created_at) VALUES (?, datetime('now'))",
                 (url_input,)
             )
             con.commit()
 
-            # Проверяем, добавлен ли URL
+            # Получаем id URL
             cur.execute("SELECT id FROM urls WHERE name = ?", (url_input,))
             row = cur.fetchone()
 
@@ -81,6 +81,7 @@ def index():
 
     return render_template('index.html')
 
+
 # Страница со списком URL
 @app.route('/urls')
 def urls_list():
@@ -93,7 +94,7 @@ def urls_list():
 
         urls = []
         for row in rows:
-            # Получение последней проверки для текущего URL
+            # Получение последней проверки
             cur.execute(
                 "SELECT created_at FROM url_checks WHERE url_id = ? ORDER BY datetime(created_at) DESC LIMIT 1",
                 (row['id'],)
@@ -114,6 +115,7 @@ def urls_list():
 
     return render_template('urls.html', urls=urls)
 
+
 # Детали URL и проверки
 @app.route('/urls/<int:url_id>')
 def url_detail(url_id):
@@ -122,6 +124,7 @@ def url_detail(url_id):
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
+        # Получение URL
         cur.execute("SELECT id, name, created_at FROM urls WHERE id = ?", (url_id,))
         url_row = cur.fetchone()
         if not url_row:
@@ -157,12 +160,14 @@ def url_detail(url_id):
 
     return render_template('url.html', url=url, checks=checks)
 
+
 # Выполнение проверки URL
 @app.route('/urls/<int:id>/checks', methods=['POST'])
 def url_check(id):
     con = get_db_connection()
     try:
         cur = con.cursor()
+        # Получаем URL для проверки
         cur.execute("SELECT id, name FROM urls WHERE id = ?", (id,))
         url_row = cur.fetchone()
         if not url_row:
@@ -170,19 +175,24 @@ def url_check(id):
             return redirect(url_for('urls_list'))
 
         url_name = url_row['name']
+
+        # Выполняем проверку (ваша логика)
         check_result = perform_check(url_name)
 
-        # Вставляем результат
-        cur.execute("""
+        # Вставляем результат в url_checks
+        cur.execute(
+            """
             INSERT INTO url_checks (url_id, status_code, title, h1, meta_description, created_at)
             VALUES (?, ?, ?, ?, ?, datetime('now'))
-        """, (
-            id,
-            check_result.get('status_code'),
-            check_result.get('title'),
-            check_result.get('h1'),
-            check_result.get('meta_description')
-        ))
+            """,
+            (
+                id,
+                check_result.get('status_code'),
+                check_result.get('title'),
+                check_result.get('h1'),
+                check_result.get('meta_description')
+            )
+        )
         con.commit()
 
     finally:
