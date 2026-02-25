@@ -7,25 +7,30 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body>
-<div class="container py-4">
-  <h1 class="mb-4">Анализатор страниц</h1>
+  <div class="container py-4">
+    <!-- Заголовок -->
+    <h1 class="mb-4">Анализатор страниц</h1>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{category}}">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
-    
-  {% endwith %}
-  <form method="post" action="{{ url_for('index') }}" class="mb-4">
-    <div class="mb-3">
-      <label for="url" class="form-label">URL сайта</label>
-      <input type="text" class="form-control" id="url" name="url" placeholder="https://example.com" required maxlength="255" />
-    </div>
-    <button type="submit" class="btn btn-primary">Проверить</button>
-  </form>
-  <a href="{{ url_for('urls_list') }}" class="btn btn-secondary">Сайты</a>
-</div>
+    <!-- Добавляем рядом ссылку с текстом "Анализатор страниц" -->
+    <a href="/" class="btn btn-link mb-4 p-0 align-baseline">Анализатор страниц</a>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{category}}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('index') }}" class="mb-4">
+      <div class="mb-3">
+        <label for="url" class="form-label">URL сайта</label>
+        <input type="text" class="form-control" id="url" name="url" placeholder="https://example.com" required maxlength="255" />
+      </div>
+      <button type="submit" class="btn btn-primary">Проверить</button>
+    </form>
+
+    <a href="{{ url_for('urls_list') }}" class="btn btn-secondary">Сайты</a>
+  </div>
 </body>
 </html>
