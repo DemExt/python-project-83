@@ -64,9 +64,9 @@ def index():
             row = cur.fetchone()
 
             if row:
-                flash('URL успешно добавлен!', 'success')
+                flash('Страница успешно добавлена', 'success')
             else:
-                flash('Этот URL уже существует', 'info')
+                flash('Страница уже существует', 'info')
 
             if matches:
                 flash(f'Обнаружены шаблоны: {", ".join(matches)}', 'info')
