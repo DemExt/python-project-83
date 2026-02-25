@@ -11,7 +11,8 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
-SQLALCHEMY_DATABASE_URI = 'sqlite:///db.sqlite3'
+# Используйте вашу реальную строку подключения PostgreSQL:
+SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://username:password@localhost:5432/yourdbname'
 
 engine = create_engine(SQLALCHEMY_DATABASE_URI, echo=True)
 SessionLocal = sessionmaker(bind=engine)
@@ -22,7 +23,7 @@ Base = declarative_base()
 class Check(Base):
     __tablename__ = 'checks'
     id = Column(Integer, primary_key=True)
-    url_id = Column(Integer, ForeignKey('urls.id'), nullable=False)
+    url_id = Column(Integer, ForeignKey('urls.id', ondelete="CASCADE"), nullable=False)
     status_code = Column(Integer, nullable=False)
     error = Column(String)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -39,8 +40,7 @@ class Url(Base):
     name = Column(String(255), nullable=False, unique=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-    checks = relationship('Check', back_populates='url', cascade='all, delete')
+    checks = relationship('Check', back_populates='url', cascade='all, delete-orphan')
 
 
-# Создайте таблицы, если еще не существуют
 Base.metadata.create_all(bind=engine)

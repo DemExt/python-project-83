@@ -7,7 +7,7 @@ def perform_check(url):
         'status_code': None,
         'title': None,
         'h1': None,
-        'meta_description': None,
+        'description': None,
     }
     try:
         response = requests.get(url, timeout=10)
@@ -25,7 +25,7 @@ def perform_check(url):
 
         meta_desc = soup.find('meta', attrs={'name': 'description'})
         if meta_desc and meta_desc.get('content'):
-            result['meta_description'] = meta_desc['content'].strip()
+            result['description'] = meta_desc['content'].strip()
 
     except requests.RequestException:
         # Можно логировать ошибку
