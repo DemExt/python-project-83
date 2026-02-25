@@ -20,6 +20,15 @@
 <!-- История проверок -->
 <h2 class="mt-4">История проверок</h2>
 {% if checks and checks|length > 0 %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
 <table class="table table-bordered">
   <thead>
     <tr>

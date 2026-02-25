@@ -51,7 +51,7 @@ def index():
         try:
             cur = con.cursor()
 
-            # INSERT с ON CONFLICT DO NOTHING и RETURNING id
+            # Вставка URL, если нет конфликта, с возвратом id
             cur.execute(
                 """
                 INSERT INTO urls (name, created_at)
@@ -64,10 +64,20 @@ def index():
             row = cur.fetchone()
 
             if row:
+                url_id = row[0]
                 flash('Страница успешно добавлена', 'success')
             else:
-                flash('Страница уже существует', 'info')
+                # Если URL уже есть, получить id из базы
+                cur.execute("SELECT id FROM urls WHERE name = %s", (url_input,))
+                existing_row = cur.fetchone()
+                if existing_row:
+                    url_id = existing_row[0]
+                    flash('Страница уже существует', 'info')
+                else:
+                    flash('Не удалось получить ID для URL', 'error')
+                    return redirect(url_for('index'))
 
+            # Выводим найденные или не найденные шаблоны
             if matches:
                 flash(f'Обнаружены шаблоны: {", ".join(matches)}', 'info')
             else:
@@ -76,11 +86,13 @@ def index():
             con.commit()
         except Exception as e:
             flash(f'Ошибка базы данных: {e}', 'error')
+            return redirect(url_for('index'))
         finally:
             cur.close()
             con.close()
 
-        return redirect(url_for('urls_list'))
+        # Перенаправление на страницу детализации URL
+        return redirect(url_for('url_detail', url_id=url_id))
 
     return render_template('index.html')
 

@@ -11,17 +11,19 @@
     <!-- Заголовок -->
     <h1 class="mb-4">Анализатор страниц</h1>
 
-    <!-- Добавляем рядом ссылку с текстом "Анализатор страниц" -->
+    <!-- Ссылка -->
     <a href="/" class="btn btn-link mb-4 p-0 align-baseline">Анализатор страниц</a>
 
+    <!-- Блок флеш-сообщений только здесь -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{category}}">{{ message }}</div>
+          <div class="alert alert-{{ category }}">{{ message }}</div>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
+    <!-- Форма -->
     <form method="post" action="{{ url_for('index') }}" class="mb-4">
       <div class="mb-3">
         <label for="url" class="form-label">URL сайта</label>
