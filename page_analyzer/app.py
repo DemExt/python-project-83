@@ -1,10 +1,10 @@
 import os
 import re
-import sqlite3
 from datetime import datetime
 from urllib.parse import urlparse
 
 import validators
+import psycopg2
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, url_for
 
@@ -19,10 +19,8 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 
 pattern = r'([a-z]{3}):\1'
 
-
 def find_matches(text):
     return re.findall(pattern, text)
-
 
 # Главная страница
 @app.route('/', methods=['GET', 'POST'])
@@ -47,22 +45,22 @@ def index():
             flash("Некорректный URL", 'error')
             return redirect(url_for('index'))
 
-        # Проверка совпадений — предполагаемая функция find_matches
         matches = find_matches(url_input)
 
         con = get_db_connection()
         try:
             cur = con.cursor()
-            # Добавляем URL, уникальность по name
+
+            # INSERT с ON CONFLICT DO NOTHING и RETURNING id
             cur.execute(
-                "INSERT OR IGNORE INTO urls (name, created_at) "
-                "VALUES (?, datetime('now'))",
+                """
+                INSERT INTO urls (name, created_at)
+                VALUES (%s, CURRENT_TIMESTAMP)
+                ON CONFLICT (name) DO NOTHING
+                RETURNING id
+                """,
                 (url_input,)
             )
-            con.commit()
-
-            # Получаем id URL
-            cur.execute("SELECT id FROM urls WHERE name = ?", (url_input,))
             row = cur.fetchone()
 
             if row:
@@ -75,101 +73,100 @@ def index():
             else:
                 flash('Шаблоны не найдены', 'info')
 
+            con.commit()
         except Exception as e:
             flash(f'Ошибка базы данных: {e}', 'error')
         finally:
+            cur.close()
             con.close()
 
         return redirect(url_for('urls_list'))
 
     return render_template('index.html')
 
-
 # Страница со списком URL
 @app.route('/urls')
 def urls_list():
     con = get_db_connection()
     try:
-        con.row_factory = sqlite3.Row
         cur = con.cursor()
-        cur.execute("SELECT id, name, created_at FROM "
-                    "urls ORDER BY datetime(created_at) DESC")
+        cur.execute(
+            "SELECT id, name, created_at FROM urls ORDER BY created_at DESC"
+        )
         rows = cur.fetchall()
 
         urls = []
         for row in rows:
-            # Получение последней проверки
+            url_id, name, created_at = row
+
+            # Получение последней проверки для URL
             cur.execute(
-                "SELECT created_at FROM url_checks WHERE url_id = ? "
-                "ORDER BY datetime(created_at) DESC LIMIT 1",
-                (row['id'],)
+                """
+                SELECT created_at FROM url_checks
+                WHERE url_id = %s
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (url_id,)
             )
-            check = cur.fetchone()
-            last_check_time = None
-            if check:
-                last_check_time = datetime.strptime(check['created_at'],
-                                                    '%Y-%m-%d %H:%M:%S')
+            check_row = cur.fetchone()
+            last_check_time = check_row[0] if check_row else None
 
             urls.append({
-                'id': row['id'],
-                'name': row['name'],
-                'created_at': datetime.strptime(row['created_at'],
-                                                '%Y-%m-%d %H:%M:%S'),
+                'id': url_id,
+                'name': name,
+                'created_at': created_at,
                 'last_check_time': last_check_time
             })
     finally:
+        cur.close()
         con.close()
 
     return render_template('urls.html', urls=urls)
-
 
 # Детали URL и проверки
 @app.route('/urls/<int:url_id>')
 def url_detail(url_id):
     con = get_db_connection()
     try:
-        con.row_factory = sqlite3.Row
         cur = con.cursor()
 
-        # Получение URL
-        cur.execute("SELECT id, name, created_at FROM "
-                    "urls WHERE id = ?", (url_id,))
+        cur.execute(
+            "SELECT id, name, created_at FROM urls WHERE id = %s", (url_id,)
+        )
         url_row = cur.fetchone()
         if not url_row:
             flash("URL не найден", 'error')
             return redirect(url_for('urls_list'))
 
         url = {
-            'id': url_row['id'],
-            'name': url_row['name'],
-            'created_at': datetime.strptime(url_row['created_at'],
-                                            '%Y-%m-%d %H:%M:%S')
+            'id': url_row[0],
+            'name': url_row[1],
+            'created_at': url_row[2],
         }
 
-        # Получение проверок
         cur.execute("""
-            SELECT id, status_code, title, h1, meta_description, created_at
-            FROM url_checks WHERE url_id = ? ORDER BY datetime(created_at) DESC
+            SELECT id, status_code, title, h1, description, created_at
+            FROM url_checks WHERE url_id = %s ORDER BY created_at DESC
         """, (url_id,))
         checks_rows = cur.fetchall()
 
         checks = []
         for row in checks_rows:
             checks.append({
-                'id': row['id'],
-                'status_code': row['status_code'],
-                'title': row['title'],
-                'h1': row['h1'],
-                'meta_description': row['meta_description'],
-                'created_at': datetime.strptime(row['created_at'],
-                                                '%Y-%m-%d %H:%M:%S')
+                'id': row[0],
+                'status_code': row[1],
+                'title': row[2],
+                'h1': row[3],
+                'description': row[4],
+                'created_at': row[5],
             })
 
     finally:
+        cur.close()
         con.close()
 
     return render_template('url.html', url=url, checks=checks)
-
 
 # Выполнение проверки URL
 @app.route('/urls/<int:id>/checks', methods=['POST'])
@@ -177,36 +174,34 @@ def url_check(id):
     con = get_db_connection()
     try:
         cur = con.cursor()
-        # Получаем URL для проверки
-        cur.execute("SELECT id, name FROM urls WHERE id = ?", (id,))
+
+        cur.execute("SELECT id, name FROM urls WHERE id = %s", (id,))
         url_row = cur.fetchone()
         if not url_row:
             flash("URL не найден", 'error')
             return redirect(url_for('urls_list'))
 
-        url_name = url_row['name']
+        url_name = url_row[1]
 
-        # Выполняем проверку (ваша логика)
         check_result = perform_check(url_name)
 
-        # Вставляем результат в url_checks
         cur.execute(
             """
-            INSERT INTO url_checks (url_id, status_code, title,
-            h1, meta_description, created_at)
-            VALUES (?, ?, ?, ?, ?, datetime('now'))
+            INSERT INTO url_checks (url_id, status_code, title, h1, description, created_at)
+            VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
             """,
             (
                 id,
                 check_result.get('status_code'),
                 check_result.get('title'),
                 check_result.get('h1'),
-                check_result.get('meta_description')
+                check_result.get('description')  # раньше meta_description, теперь description
             )
         )
         con.commit()
 
     finally:
+        cur.close()
         con.close()
 
     return redirect(url_for('url_detail', url_id=id))
