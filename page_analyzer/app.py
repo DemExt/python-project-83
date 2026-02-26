@@ -1,10 +1,8 @@
 import os
 import re
-from datetime import datetime
 from urllib.parse import urlparse
 
 import validators
-import psycopg2
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, url_for
 
@@ -19,8 +17,10 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 
 pattern = r'([a-z]{3}):\1'
 
+
 def find_matches(text):
     return re.findall(pattern, text)
+
 
 # Главная страница
 @app.route('/', methods=['GET', 'POST'])
@@ -96,6 +96,7 @@ def index():
 
     return render_template('index.html')
 
+
 # Страница со списком URL
 @app.route('/urls')
 def urls_list():
@@ -135,6 +136,7 @@ def urls_list():
         con.close()
 
     return render_template('urls.html', urls=urls)
+
 
 # Детали URL и проверки
 @app.route('/urls/<int:url_id>')
@@ -179,6 +181,7 @@ def url_detail(url_id):
         con.close()
 
     return render_template('url.html', url=url, checks=checks)
+
 
 # Выполнение проверки URL
 @app.route('/urls/<int:id>/checks', methods=['POST'])

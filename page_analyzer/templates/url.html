@@ -8,62 +8,66 @@
 </head>
 <body>
 <div class="container py-4">
+
   <h1>Сайт: {{ url.name }}</h1>
   <p>ID: {{ url.id }}</p>
   <p>Добавлен: {{ url['created_at'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
 
+  <!-- Блок для отображения флеш-сообщений -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} mt-2">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
   <!-- Кнопка "Проверить" -->
-<form method="post" action="{{ url_for('url_check', id=url.id) }}" style="display:inline;">
-  <button type="submit" class="btn btn-primary">Провести проверку</button>
-</form>
+  <form method="post" action="{{ url_for('url_check', id=url.id) }}" style="display:inline;">
+    <button type="submit" class="btn btn-primary">Провести проверку</button>
+  </form>
 
-<!-- История проверок -->
-<h2 class="mt-4">История проверок</h2>
-{% if checks and checks|length > 0 %}
+  <!-- История проверок -->
+  <h2 class="mt-4">История проверок</h2>
+  {% if checks and checks|length > 0 %}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Код статуса</th>
+          <th>Заголовок</th>
+          <th>H1</th>
+          <th>Description</th>
+          <th>Дата проверки</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for check in checks %}
+        <tr>
+          <td>{{ check.id }}</td>
+          <td>
+            {% if check.status_code %}
+              {{ check.status_code }}
+            {% else %}
+              Ошибка
+            {% endif %}
+          </td>
+          <td>{{ check.title or "Нет данных" }}</td>
+          <td>{{ check.h1 or "Нет данных" }}</td>
+          <td>{{ check.meta_description or "Нет данных" }}</td>
+          <td>{{ check.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        </tr>
         {% endfor %}
-      {% endif %}
-    {% endwith %}
-    
-<table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Код статуса</th>
-      <th>Заголовок</th>
-      <th>H1</th>
-      <th>Description</th>
-      <th>Дата проверки</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for check in checks %}
-    <tr>
-      <td>{{ check.id }}</td>
-      <td>
-        {% if check.status_code %}
-          {{ check.status_code }}
-        {% else %}
-          Ошибка
-        {% endif %}
-      </td>
-      <td>{{ check.title or "Нет данных" }}</td>
-      <td>{{ check.h1 or "Нет данных" }}</td>
-      <td>{{ check.meta_description or "Нет данных" }}</td>
-      <td>{{ check.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% else %}
-<p>Нет проверок для этого сайта.</p>
-{% endif %}
-  
-  <a href="{{ url_for('urls_list') }}" class="btn btn-secondary">Назад к списку</a>
+      </tbody>
+    </table>
+  {% else %}
+    <p>Нет проверок для этого сайта.</p>
+  {% endif %}
+
+  <a href="{{ url_for('urls_list') }}" class="btn btn-secondary mt-3">Назад к списку</a>
 </div>
 </body>
 </html>
