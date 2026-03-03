@@ -8,11 +8,6 @@
 </head>
 <body>
 <div class="container py-4">
-
-  <h1>Сайт: {{ url.name }}</h1>
-  <p>ID: {{ url.id }}</p>
-  <p>Добавлен: {{ url['created_at'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
-
   <!-- Блок для отображения флеш-сообщений -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -23,6 +18,10 @@
       </div>
     {% endif %}
   {% endwith %}
+
+  <h1>Сайт: {{ url.name }}</h1>
+  <p>ID: {{ url.id }}</p>
+  <p>Добавлен: {{ url['created_at'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
 
   <!-- Кнопка "Проверить" -->
   <form method="post" action="{{ url_for('url_check', id=url.id) }}" style="display:inline;">
