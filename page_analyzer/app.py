@@ -63,9 +63,12 @@ def index():
             )
             row = cur.fetchone()
 
+            show_templates = False
+
             if row:
                 url_id = row[0]
                 flash('Страница успешно добавлена', 'success')
+                show_templates = True
             else:
                 # Если URL уже есть, получить id из базы
                 cur.execute("SELECT id FROM urls WHERE name = %s", (url_input,))
@@ -78,11 +81,11 @@ def index():
                     return redirect(url_for('index'))
 
             # Выводим найденные или не найденные шаблоны
-            if matches:
-                flash(f'Обнаружены шаблоны: {", ".join(matches)}', 'info')
-            else:
-                if not row:
-                    flash('Шаблоны не найдены', 'info')
+            #if show_templates:
+            #    if matches:
+            #        flash(f'Обнаружены шаблоны: {", ".join(matches)}', 'info')
+            #    else:
+            #        flash('Шаблоны не найдены', 'info')
 
             con.commit()
         except Exception as e:
