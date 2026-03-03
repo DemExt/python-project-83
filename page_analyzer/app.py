@@ -63,12 +63,10 @@ def index():
             )
             row = cur.fetchone()
 
-            show_templates = False
-
             if row:
                 url_id = row[0]
                 flash('Страница успешно добавлена', 'success')
-                show_templates = True
+                #page_exists = False
             else:
                 # Если URL уже есть, получить id из базы
                 cur.execute("SELECT id FROM urls WHERE name = %s", (url_input,))
@@ -76,6 +74,7 @@ def index():
                 if existing_row:
                     url_id = existing_row[0]
                     flash('Страница уже существует', 'info')
+                    #page_exists = True
                 else:
                     flash('Не удалось получить ID для URL', 'error')
                     return redirect(url_for('index'))
