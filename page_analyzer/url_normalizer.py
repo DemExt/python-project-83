@@ -6,6 +6,7 @@ def normalize_url(url):
     scheme = parsed.scheme or 'http'
     netloc = parsed.netloc or parsed.path
     path = parsed.path if parsed.scheme else ''
+    path = path or '/'  # по умолчанию добавляем '/'
     
     # Приведение к нижнему регистру
     scheme = scheme.lower()
