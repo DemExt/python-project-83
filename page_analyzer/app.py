@@ -81,7 +81,8 @@ def index():
             if matches:
                 flash(f'Обнаружены шаблоны: {", ".join(matches)}', 'info')
             else:
-                flash('Шаблоны не найдены', 'info')
+                if not row:
+                    flash('Шаблоны не найдены', 'info')
 
             con.commit()
         except Exception as e:
