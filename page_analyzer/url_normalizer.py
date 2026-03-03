@@ -1,20 +1,22 @@
+import re
 from urllib.parse import urlparse, urlunparse
 
 
 def normalize_url(url):
+    # Добавляем схему по умолчанию if отсутствует
+    if not re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*://', url):
+        url = 'http://' + url
+
     parsed = urlparse(url)
-    scheme = parsed.scheme or 'http'
-    netloc = parsed.netloc or parsed.path
-    path = parsed.path if parsed.scheme else ''
-    path = path or '/'  # по умолчанию добавляем '/'
-    
-    # Приведение к нижнему регистру
-    scheme = scheme.lower()
-    netloc = netloc.lower()
-    
-    # Уберем слэш в конце пути, кроме если путь — root ('/')
+    scheme = parsed.scheme.lower()
+    netloc = parsed.netloc.lower()
+
+    path = parsed.path
+
+    # Убираем слэш в конце пути, кроме если путь — это корень ('/')
     if path != '/' and path.endswith('/'):
         path = path.rstrip('/')
 
+    # Строим нормализованный URL
     normalized = urlunparse((scheme, netloc, path, '', '', ''))
     return normalized
