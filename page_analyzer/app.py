@@ -35,6 +35,8 @@ def index():
 
         # Нормализация и проверка URL
         url_input = normalize_url(url_input)
+        if url_input.endswith('/') and url_input != 'http://':
+            url_input = url_input.rstrip('/')
 
         parsed_url = urlparse(url_input)
         if not (parsed_url.scheme and parsed_url.netloc):
@@ -145,6 +147,7 @@ def urls_list():
 @app.route('/urls/<int:url_id>')
 def url_detail(url_id):
     con = get_db_connection()
+    checks = []
     try:
         cur = con.cursor()
 
@@ -162,22 +165,26 @@ def url_detail(url_id):
             'created_at': url_row[2],
         }
 
-        cur.execute("""
-            SELECT id, status_code, title, h1, description, created_at
-            FROM url_checks WHERE url_id = %s ORDER BY created_at DESC
-        """, (url_id,))
-        checks_rows = cur.fetchall()
+        try:
+            cur.execute("""
+                SELECT id, status_code, title, h1, description, created_at
+                FROM url_checks WHERE url_id = %s ORDER BY created_at DESC
+            """, (url_id,))
+            checks_rows = cur.fetchall()
 
-        checks = []
-        for row in checks_rows:
-            checks.append({
-                'id': row[0],
-                'status_code': row[1],
-                'title': row[2],
-                'h1': row[3],
-                'description': row[4],
-                'created_at': row[5],
-            })
+            checks = []
+            for row in checks_rows:
+                checks.append({
+                    'id': row[0],
+                    'status_code': row[1],
+                    'title': row[2],
+                    'h1': row[3],
+                    'description': row[4],
+                    'created_at': row[5],
+                })
+        except Exception as e:
+            flash('Произошла ошибка при проверке', 'danger')
+            checks = [] 
 
     finally:
         cur.close()
@@ -201,8 +208,25 @@ def url_check(id):
 
         url_name = url_row[1]
 
-        check_result = perform_check(url_name)
+        try:
+            check_result = perform_check(url_name)
+            status_code = check_result.get('status_code')
 
+            # Проверяем статус-код
+            if status_code == 200:
+                flash('Страница успешно проверена', 'success')
+            else:
+                flash('Произошла ошибка при проверке', 'danger')
+
+        except Exception:
+            flash('Произошла ошибка при проверке', 'danger')
+            check_result = {
+                'status_code': None,
+                'title': None,
+                'h1': None,
+                'description': None
+            }
+        
         cur.execute(
             """
             INSERT INTO url_checks (url_id, status_code, title, h1, description, created_at)

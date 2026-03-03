@@ -6,5 +6,14 @@ def normalize_url(url):
     scheme = parsed.scheme or 'http'
     netloc = parsed.netloc or parsed.path
     path = parsed.path if parsed.scheme else ''
+    
+    # Приведение к нижнему регистру
+    scheme = scheme.lower()
+    netloc = netloc.lower()
+    
+    # Уберем слэш в конце пути, кроме если путь — root ('/')
+    if path != '/' and path.endswith('/'):
+        path = path.rstrip('/')
+
     normalized = urlunparse((scheme, netloc, path, '', '', ''))
     return normalized
