@@ -69,8 +69,8 @@
               Ошибка
             {% endif %}
           </td>
-          <td>{{ check.title or "Нет данных" }}</td>
           <td>{{ check.h1 or "Нет данных" }}</td>
+          <td>{{ check.title or "Нет данных" }}</td>
           <td>{{ check.description or "Нет данных" }}</td>
           <td>{{ check.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
         </tr>
