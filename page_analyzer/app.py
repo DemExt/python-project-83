@@ -177,8 +177,8 @@ def url_detail(url_id):
                 checks.append({
                     'id': row[0],
                     'status_code': row[1],
-                    'title': row[2],
-                    'h1': row[3],
+                    'h1': row[2],
+                    'title': row[3],
                     'description': row[4],
                     'created_at': row[5],
                 })
@@ -222,8 +222,8 @@ def url_check(id):
             flash('Произошла ошибка при проверке', 'danger')
             check_result = {
                 'status_code': None,
-                'title': None,
                 'h1': None,
+                'title': None,
                 'description': None
             }
         
@@ -235,8 +235,8 @@ def url_check(id):
             (
                 id,
                 check_result.get('status_code'),
-                check_result.get('title'),
                 check_result.get('h1'),
+                check_result.get('title'),
                 check_result.get('description')  # раньше meta_description, теперь description
             )
         )

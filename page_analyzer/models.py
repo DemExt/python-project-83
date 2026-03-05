@@ -27,9 +27,9 @@ class Check(Base):
     status_code = Column(Integer, nullable=False)
     error = Column(String)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    title = Column(String, nullable=True)
     h1 = Column(String, nullable=True)
-    meta_description = Column(String, nullable=True)
+    title = Column(String, nullable=True)
+    description = Column(String, nullable=True)
 
     url = relationship('Url', back_populates='checks')
 
