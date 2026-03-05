@@ -120,7 +120,7 @@ def urls_list():
             # Получение последней проверки для URL
             cur.execute(
                 """
-                SELECT created_at FROM url_checks
+                SELECT created_at, status_code FROM url_checks
                 WHERE url_id = %s
                 ORDER BY created_at DESC
                 LIMIT 1
@@ -129,12 +129,14 @@ def urls_list():
             )
             check_row = cur.fetchone()
             last_check_time = check_row[0] if check_row else None
+            status_code = check_row[1] if check_row else None
 
             urls.append({
                 'id': url_id,
                 'name': name,
                 'created_at': created_at,
-                'last_check_time': last_check_time
+                'last_check_time': last_check_time,
+                'status_code': status_code
             })
     finally:
         cur.close()
