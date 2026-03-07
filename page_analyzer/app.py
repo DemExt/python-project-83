@@ -213,6 +213,10 @@ def url_check(id):
         try:
             check_result = perform_check(url_name)
             status_code = check_result.get('status_code')
+            # Обрезаем данные до 255 символов для прохождения тестов
+            h1 = (check_result.get('h1') or '')[:255]
+            title = (check_result.get('title') or '')[:255]
+            description = (check_result.get('description') or '')[:255]
 
             # Проверяем статус-код
             if status_code == 200:
@@ -220,29 +224,19 @@ def url_check(id):
             else:
                 flash('Произошла ошибка при проверке', 'danger')
 
+            cur.execute(
+                """
+                INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at)
+                VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                """,
+                (id, status_code, h1, title, description)
+            )
+            con.commit()
+
         except Exception:
             flash('Произошла ошибка при проверке', 'danger')
-            check_result = {
-                'status_code': None,
-                'h1': None,
-                'title': None,
-                'description': None
-            }
-        
-        cur.execute(
-            """
-            INSERT INTO url_checks (url_id, status_code, title, h1, description, created_at)
-            VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-            """,
-            (
-                id,
-                check_result.get('status_code'),
-                check_result.get('h1'),
-                check_result.get('title'),
-                check_result.get('description')  # раньше meta_description, теперь description
-            )
-        )
-        con.commit()
+            # В случае ошибки парсинга или БД откатываем транзакцию, если нужно
+            con.rollback()
 
     finally:
         cur.close()
