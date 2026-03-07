@@ -12,6 +12,6 @@ CREATE TABLE url_checks (
     status_code INTEGER,
     h1 TEXT,
     title TEXT,
-    description VARCHAR(255),  -- единообразно: description
+    description TEXT,  -- единообразно: description
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
