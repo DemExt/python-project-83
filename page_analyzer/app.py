@@ -169,7 +169,7 @@ def url_detail(url_id):
 
         try:
             cur.execute("""
-                SELECT id, status_code, title, h1, description, created_at
+                SELECT id, status_code, h1, title, description, created_at
                 FROM url_checks WHERE url_id = %s ORDER BY created_at DESC
             """, (url_id,))
             checks_rows = cur.fetchall()
