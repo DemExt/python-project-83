@@ -213,10 +213,15 @@ def url_check(id):
         try:
             check_result = perform_check(url_name)
             status_code = check_result.get('status_code')
-            # Обрезаем данные до 255 символов для прохождения тестов
-            h1 = (check_result.get('h1') or '')[:255]
-            title = (check_result.get('title') or '')[:255]
-            description = (check_result.get('description') or '')[:255]
+            # Функция для красивой обрезки под требования теста
+            def truncate(text, limit=255):
+                if text and len(text) > limit:
+                    return text[:limit-3] + '...'
+                return text or ''
+
+            h1 = truncate(check_result.get('h1'))
+            title = truncate(check_result.get('title'))
+            description = truncate(check_result.get('description'))
 
             # Проверяем статус-код
             if status_code == 200:
