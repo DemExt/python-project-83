@@ -5,8 +5,8 @@ from bs4 import BeautifulSoup
 def perform_check(url):
     result = {
         'status_code': None,
-        'title': None,
         'h1': None,
+        'title': None,
         'description': None,
     }
     try:
