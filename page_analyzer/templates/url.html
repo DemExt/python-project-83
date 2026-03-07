@@ -62,16 +62,10 @@
         {% for check in checks %}
         <tr>
           <td>{{ check.id }}</td>
-          <td>
-            {% if check.status_code %}
-              {{ check.status_code }}
-            {% else %}
-              Ошибка
-            {% endif %}
-          </td>
-          <td>{{ check.h1 or "Нет данных" }}</td>
-          <td>{{ check.title or "Нет данных" }}</td>
-          <td>{{ check.description or "Нет данных" }}</td>
+          <td>{{ check.status_code or "Ошибка" }}</td>
+          <td>{{ check.h1 or "" }}</td>
+          <td>{{ check.title or "" }}</td>
+          <td>{{ check.description or "" }}</td>
           <td>{{ check.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
         </tr>
         {% endfor %}
