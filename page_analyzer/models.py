@@ -21,15 +21,14 @@ Base = declarative_base()
 
 
 class Check(Base):
-    __tablename__ = 'checks'
+    __tablename__ = 'url_checks'
     id = Column(Integer, primary_key=True)
     url_id = Column(Integer, ForeignKey('urls.id', ondelete="CASCADE"), nullable=False)
     status_code = Column(Integer, nullable=False)
-    error = Column(String)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
     h1 = Column(String, nullable=True)
     title = Column(String, nullable=True)
     description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     url = relationship('Url', back_populates='checks')
 
