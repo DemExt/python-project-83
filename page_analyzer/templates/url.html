@@ -42,38 +42,36 @@
     <button type="submit" class="btn btn-primary">Запустить проверку</button>
   </form>
 
-  <!-- История проверок -->
-  <h2 class="mt-4">История проверок</h2>
-  {% if checks and checks|length > 0 %}
-
-    <!-- добавил  data-test="checks"-->
-    <table class="table table-bordered" data-test="checks"> 
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Код ответа</th>
-          <th>h1</th>
-          <th>title</th>
-          <th>description</th>
-          <th>Дата проверки</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for check in checks %}
-        <tr>
-          <td>{{ check.id }}</td>
-          <td>{{ check.status_code or "Ошибка" }}</td>
-          <td>{{ check.h1 or "" }}</td>
-          <td>{{ check.title or "" }}</td>
-          <td>{{ check.description or "" }}</td>
-          <td>{{ check.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>Нет проверок для этого сайта.</p>
-  {% endif %}
+<!-- История проверок -->
+<h2 class="mt-4">История проверок</h2>
+{% if checks %}
+<table class="table table-bordered" data-test="checks"> 
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Код ответа</th>
+      <th>h1</th>
+      <th>title</th>
+      <th>description</th>
+      <th>Дата проверки</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for check in checks %}
+    <tr>
+      <td>{{ check.id }}</td>
+      <td>{{ check.status_code or "" }}</td>
+      <td>{{ check.h1 or "" }}</td>
+      <td>{{ check.title or "" }}</td>
+      <td>{{ check.description or "" }}</td>
+      <td>{{ check.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Нет проверок для этого сайта.</p>
+{% endif %}
 
   <a href="{{ url_for('urls_list') }}" class="btn btn-secondary mt-3">Назад к списку</a>
 </div>

@@ -47,7 +47,6 @@ def index():
             flash("Некорректный URL", 'error')
             return redirect(url_for('index'))
 
-        #matches = find_matches(url_input)
 
         con = get_db_connection()
         try:
@@ -178,7 +177,7 @@ def url_detail(url_id):
                 })
         except Exception:
             flash('Произошла ошибка при проверке', 'danger')
-            checks = [] 
+            checks = []
 
     finally:
         cur.close()
@@ -205,11 +204,15 @@ def url_check(id):
         try:
             check_result = perform_check(url_name)
             status_code = check_result.get('status_code')
+
             # Функция для красивой обрезки под требования теста
             def truncate(text, limit=255):
-                if text and len(text) > limit:
-                    return text[:limit-3] + '...'
-                return text or ''
+                if not text:
+                    return ''
+                text = str(text).strip() # Убираем лишние пробелы перед проверкой длины
+                if len(text) > limit:
+                    return text[:limit - 3] + '...'
+                return text
 
             h1 = truncate(check_result.get('h1'))
             title = truncate(check_result.get('title'))
@@ -223,7 +226,8 @@ def url_check(id):
 
             cur.execute(
                 """
-                INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at)
+                INSERT INTO url_checks (url_id, status_code, h1,
+                title, description, created_at)
                 VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                 """,
                 (id, status_code, h1, title, description)
