@@ -1,16 +1,10 @@
-import re
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse
 
 
 def normalize_url(url):
-    # Добавляем схему по умолчанию if отсутствует
-    if not re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*://', url):
-        url = 'http://' + url
-
     parsed = urlparse(url)
+    # Только схему и хост в нижний регистр, остальное не трогаем!
     scheme = parsed.scheme.lower()
     netloc = parsed.netloc.lower()
-
-    # Строим нормализованный URL
-    normalized = urlunparse((scheme, netloc, '', '', '', ''))
-    return normalized
+    path = parsed.path
+    return f"{scheme}://{netloc}{path}"

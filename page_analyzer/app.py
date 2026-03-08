@@ -47,7 +47,6 @@ def index():
             flash("Некорректный URL", 'error')
             return redirect(url_for('index'))
 
-
         con = get_db_connection()
         try:
             cur = con.cursor()
@@ -113,7 +112,7 @@ def urls_list():
                 """
                 SELECT created_at, status_code FROM url_checks
                 WHERE url_id = %s
-                ORDER BY created_at DESC
+                ORDER BY id DESC
                 LIMIT 1
                 """,
                 (url_id,)
@@ -209,7 +208,7 @@ def url_check(id):
             def truncate(text, limit=255):
                 if not text:
                     return ''
-                text = str(text).strip() # Убираем лишние пробелы перед проверкой длины
+                text = str(text).strip()
                 if len(text) > limit:
                     return text[:limit - 3] + '...'
                 return text

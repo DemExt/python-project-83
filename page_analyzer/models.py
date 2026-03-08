@@ -28,7 +28,7 @@ class Check(Base):
     id = Column(Integer, primary_key=True)
     url_id = Column(
         Integer, ForeignKey('urls.id', ondelete="CASCADE"), nullable=False)
-    status_code = Column(Integer, nullable=False)
+    status_code = Column(Integer, nullable=True)
     h1 = Column(String, nullable=True)
     title = Column(String, nullable=True)
     description = Column(String, nullable=True)
