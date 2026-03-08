@@ -47,7 +47,7 @@ def index():
             flash("Некорректный URL", 'error')
             return redirect(url_for('index'))
 
-        matches = find_matches(url_input)
+        #matches = find_matches(url_input)
 
         con = get_db_connection()
         try:
@@ -68,25 +68,17 @@ def index():
             if row:
                 url_id = row[0]
                 flash('Страница успешно добавлена', 'success')
-                #page_exists = False
             else:
                 # Если URL уже есть, получить id из базы
-                cur.execute("SELECT id FROM urls WHERE name = %s", (url_input,))
+                cur.execute(
+                    "SELECT id FROM urls WHERE name = %s", (url_input,))
                 existing_row = cur.fetchone()
                 if existing_row:
                     url_id = existing_row[0]
                     flash('Страница уже существует', 'info')
-                    #page_exists = True
                 else:
                     flash('Не удалось получить ID для URL', 'error')
                     return redirect(url_for('index'))
-
-            # Выводим найденные или не найденные шаблоны
-            #if show_templates:
-            #    if matches:
-            #        flash(f'Обнаружены шаблоны: {", ".join(matches)}', 'info')
-            #    else:
-            #        flash('Шаблоны не найдены', 'info')
 
             con.commit()
         except Exception as e:
@@ -109,7 +101,7 @@ def urls_list():
     try:
         cur = con.cursor()
         cur.execute(
-            "SELECT id, name, created_at FROM urls ORDER BY created_at DESC"
+            "SELECT id, name, created_at FROM urls ORDER BY id DESC"
         )
         rows = cur.fetchall()
 
@@ -170,7 +162,7 @@ def url_detail(url_id):
         try:
             cur.execute("""
                 SELECT id, status_code, h1, title, description, created_at
-                FROM url_checks WHERE url_id = %s ORDER BY created_at DESC
+                FROM url_checks WHERE url_id = %s ORDER BY id DESC
             """, (url_id,))
             checks_rows = cur.fetchall()
 
@@ -184,7 +176,7 @@ def url_detail(url_id):
                     'description': row[4],
                     'created_at': row[5],
                 })
-        except Exception as e:
+        except Exception:
             flash('Произошла ошибка при проверке', 'danger')
             checks = [] 
 
