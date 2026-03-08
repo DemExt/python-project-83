@@ -3,6 +3,9 @@ from urllib.parse import urlparse
 
 def normalize_url(url):
     parsed = urlparse(url)
-    # Оставляем ТОЛЬКО схему и домен, переводим в нижний регистр
-    # Все остальное (path, params, query, fragment) отбрасываем
-    return f"{parsed.scheme.lower()}://{parsed.netloc.lower()}"
+    # Схема и домен — в нижний регистр
+    scheme = parsed.scheme.lower()
+    netloc = parsed.netloc.lower()
+    # Путь оставляем, но убираем лишний слеш в конце, если он есть
+    path = parsed.path.rstrip('/')
+    return f"{scheme}://{netloc}{path}"
