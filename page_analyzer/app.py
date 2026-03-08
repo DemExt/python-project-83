@@ -35,13 +35,6 @@ def index():
 
         # Нормализация и проверка URL
         url_input = normalize_url(url_input)
-        if url_input.endswith('/') and url_input != 'http://':
-            url_input = url_input.rstrip('/')
-
-        parsed_url = urlparse(url_input)
-        if not (parsed_url.scheme and parsed_url.netloc):
-            flash("Некорректный URL", 'error')
-            return redirect(url_for('index'))
 
         if not validators.url(url_input):
             flash("Некорректный URL", 'error')
@@ -67,20 +60,15 @@ def index():
                 url_id = row[0]
                 flash('Страница успешно добавлена', 'success')
             else:
-                # Если URL уже есть, получить id из базы
+                # Если сработал ON CONFLICT, получаем ID
                 cur.execute(
                     "SELECT id FROM urls WHERE name = %s", (url_input,))
-                existing_row = cur.fetchone()
-                if existing_row:
-                    url_id = existing_row[0]
-                    flash('Страница уже существует', 'info')
-                else:
-                    flash('Не удалось получить ID для URL', 'error')
-                    return redirect(url_for('index'))
+                url_id = cur.fetchone()[0]
+                flash('Страница уже существует', 'info')
 
             con.commit()
-        except Exception as e:
-            flash(f'Ошибка базы данных: {e}', 'error')
+        except Exception:
+            flash(f'Ошибка базы данных', 'error')
             return redirect(url_for('index'))
         finally:
             cur.close()
