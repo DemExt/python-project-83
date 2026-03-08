@@ -68,7 +68,7 @@ def index():
 
             con.commit()
         except Exception:
-            flash(f'Ошибка базы данных', 'error')
+            flash('Ошибка базы данных', 'error')
             return redirect(url_for('index'))
         finally:
             cur.close()
