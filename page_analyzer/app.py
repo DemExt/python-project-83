@@ -26,25 +26,24 @@ def find_matches(text):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        url_input = request.form['url'].strip()
+        url_input = request.form.get('url', '').strip()
 
-        # Валидация URL
-        if len(url_input) > 255:
-            flash("URL не должен превышать 255 символов", 'error')
-            return redirect(url_for('index'))
+        # 1. Валидация: Если URL плохой, возвращаем 422 (требование тестов)
+        if not url_input or len(url_input) > 255:
+            flash("Некорректный URL", 'danger')
+            return render_template('index.html'), 422
 
-        # Нормализация и проверка URL
+        # 2. Нормализация (убедись, что в ней только схема и хост)
         url_input = normalize_url(url_input)
 
         if not validators.url(url_input):
-            flash("Некорректный URL", 'error')
-            return redirect(url_for('index'))
+            flash("Некорректный URL", 'danger')
+            return render_template('index.html'), 422
 
         con = get_db_connection()
+        cur = con.cursor()
         try:
-            cur = con.cursor()
-
-            # Вставка URL, если нет конфликта, с возвратом id
+            # 3. Пытаемся вставить URL
             cur.execute(
                 """
                 INSERT INTO urls (name, created_at)
@@ -60,22 +59,23 @@ def index():
                 url_id = row[0]
                 flash('Страница успешно добавлена', 'success')
             else:
-                # Если сработал ON CONFLICT, получаем ID
-                cur.execute(
-                    "SELECT id FROM urls WHERE name = %s", (url_input,))
+                # 4. Если дубль — достаем ID существующей записи
+                cur.execute("SELECT id FROM urls WHERE name = %s", (url_input,))
                 url_id = cur.fetchone()[0]
                 flash('Страница уже существует', 'info')
 
             con.commit()
+            
+            # 5. КОРРЕКТНЫЙ РЕДИРЕКТ на функцию url_detail (не на файл!)
+            return redirect(url_for('url_detail', url_id=url_id))
+
         except Exception:
-            flash('Ошибка базы данных', 'error')
-            return redirect(url_for('index'))
+            con.rollback()
+            flash('Ошибка базы данных', 'danger')
+            return render_template('index.html'), 422
         finally:
             cur.close()
             con.close()
-
-        # Перенаправление на страницу детализации URL
-        return redirect(url_for('url_detail', url_id=url_id))
 
     return render_template('index.html')
 
