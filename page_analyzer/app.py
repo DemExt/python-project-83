@@ -28,49 +28,41 @@ def index():
     if request.method == 'POST':
         url_input = request.form.get('url', '').strip()
 
-        # 1. Валидация: Если URL плохой, возвращаем 422 (требование тестов)
+        # Валидация
         if not url_input or len(url_input) > 255:
             flash("Некорректный URL", 'danger')
             return render_template('index.html'), 422
 
-        # 2. Нормализация (убедись, что в ней только схема и хост)
         url_input = normalize_url(url_input)
-
         if not validators.url(url_input):
             flash("Некорректный URL", 'danger')
             return render_template('index.html'), 422
 
         con = get_db_connection()
-        cur = con.cursor()
         try:
-            # 3. Пытаемся вставить URL
-            cur.execute(
-                """
-                INSERT INTO urls (name, created_at)
-                VALUES (%s, CURRENT_TIMESTAMP)
-                ON CONFLICT (name) DO NOTHING
-                RETURNING id
-                """,
-                (url_input,)
-            )
+            cur = con.cursor()
+            # 1. Проверяем существование именно нормализованного значения
+            cur.execute("SELECT id FROM urls WHERE name = %s", (url_input,))
             row = cur.fetchone()
 
             if row:
+                # 2. Если есть — не вставляем, берем существующий ID
                 url_id = row[0]
-                flash('Страница успешно добавлена', 'success')
-            else:
-                # 4. Если дубль — достаем ID существующей записи
-                cur.execute("SELECT id FROM urls WHERE name = %s", (url_input,))
-                url_id = cur.fetchone()[0]
                 flash('Страница уже существует', 'info')
-
-            con.commit()
+            else:
+                # 3. Если нет — вставляем новую строку
+                cur.execute(
+                    "INSERT INTO urls (name, created_at) VALUES (%s, CURRENT_TIMESTAMP) RETURNING id",
+                    (url_input,)
+                )
+                url_id = cur.fetchone()[0]
+                flash('Страница успешно добавлена', 'success')
             
-            # 5. КОРРЕКТНЫЙ РЕДИРЕКТ на функцию url_detail (не на файл!)
+            con.commit()
+            # 4. Редирект на существующий или новый /urls/<id>
             return redirect(url_for('url_detail', url_id=url_id))
 
         except Exception:
-            con.rollback()
             flash('Ошибка базы данных', 'danger')
             return render_template('index.html'), 422
         finally:
