@@ -1,6 +1,5 @@
 import os
 import re
-from urllib.parse import urlparse
 
 import validators
 from dotenv import load_dotenv
@@ -26,6 +25,7 @@ def find_matches(text):
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 # НОВЫЙ МАРШРУТ: Обработка добавления URL (тест ждет POST на /urls)
 @app.route('/urls', methods=['POST'])
@@ -55,12 +55,13 @@ def urls_post():
         else:
             # Вставляем новую строку
             cur.execute(
-                "INSERT INTO urls (name, created_at) VALUES (%s, CURRENT_TIMESTAMP) RETURNING id",
+                "INSERT INTO urls (name, created_at) "
+                "VALUES (%s, CURRENT_TIMESTAMP) RETURNING id",
                 (url_input,)
             )
             url_id = cur.fetchone()[0]
             flash('Страница успешно добавлена', 'success')
-        
+
         con.commit()
         return redirect(url_for('url_detail', url_id=url_id))
 
@@ -70,6 +71,7 @@ def urls_post():
     finally:
         cur.close()
         con.close()
+
 
 # Страница со списком URL
 @app.route('/urls')
