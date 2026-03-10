@@ -185,12 +185,12 @@ def url_check(id):
             status_code = check_result.get('status_code')
 
             # Функция для красивой обрезки под требования теста
-            def truncate(text, limit=255):
+            def truncate(text, limit=200):
                 if not text:
                     return ''
                 text = str(text).strip()
                 if len(text) > limit:
-                    return text[:limit - 3] + '...'
+                    return text[:200] + '...'
                 return text
 
             h1 = truncate(check_result.get('h1'))
