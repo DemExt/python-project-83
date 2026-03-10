@@ -8,6 +8,18 @@
 </head>
 <body>
   <div class="container py-4">
+
+    <!-- Блок Flash-сообщений (Критично для тестов!) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     <!-- Заголовок -->
     <h1 class="mb-4">Анализатор страниц</h1>
 
@@ -15,7 +27,7 @@
     <a href="/" class="btn btn-link mb-4 p-0 align-baseline">Анализатор страниц</a>
 
     <!-- Форма -->
-    <form method="post" action="{{ url_for('index') }}" class="mb-4">
+    <form method="post" action="{{ url_for('urls_post') }}" class="mb-4">
       <div class="mb-3">
         <label for="url" class="form-label">URL сайта</label>
         <input type="text" class="form-control" id="url" name="url" placeholder="https://example.com" required maxlength="255" />

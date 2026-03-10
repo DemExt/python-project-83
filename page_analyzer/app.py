@@ -22,55 +22,54 @@ def find_matches(text):
     return re.findall(pattern, text)
 
 
-# Главная страница
-@app.route('/', methods=['GET', 'POST'])
+# Главная страница - только отображение
+@app.route('/')
 def index():
-    if request.method == 'POST':
-        url_input = request.form.get('url', '').strip()
-
-        # Валидация
-        if not url_input or len(url_input) > 255:
-            flash("Некорректный URL", 'danger')
-            return render_template('index.html'), 422
-
-        url_input = normalize_url(url_input)
-        if not validators.url(url_input):
-            flash("Некорректный URL", 'danger')
-            return render_template('index.html'), 422
-
-        con = get_db_connection()
-        try:
-            cur = con.cursor()
-            # 1. Проверяем существование именно нормализованного значения
-            cur.execute("SELECT id FROM urls WHERE name = %s", (url_input,))
-            row = cur.fetchone()
-
-            if row:
-                # 2. Если есть — не вставляем, берем существующий ID
-                url_id = row[0]
-                flash('Страница уже существует', 'info')
-            else:
-                # 3. Если нет — вставляем новую строку
-                cur.execute(
-                    "INSERT INTO urls (name, created_at) VALUES (%s, CURRENT_TIMESTAMP) RETURNING id",
-                    (url_input,)
-                )
-                url_id = cur.fetchone()[0]
-                flash('Страница успешно добавлена', 'success')
-            
-            con.commit()
-            # 4. Редирект на существующий или новый /urls/<id>
-            return redirect(url_for('url_detail', url_id=url_id))
-
-        except Exception:
-            flash('Ошибка базы данных', 'danger')
-            return render_template('index.html'), 422
-        finally:
-            cur.close()
-            con.close()
-
     return render_template('index.html')
 
+# НОВЫЙ МАРШРУТ: Обработка добавления URL (тест ждет POST на /urls)
+@app.route('/urls', methods=['POST'])
+def urls_post():
+    url_input = request.form.get('url', '').strip()
+
+    # Валидация
+    if not url_input or len(url_input) > 255:
+        flash("Некорректный URL", 'danger')
+        return render_template('index.html'), 422
+
+    url_input = normalize_url(url_input)
+    if not validators.url(url_input):
+        flash("Некорректный URL", 'danger')
+        return render_template('index.html'), 422
+
+    con = get_db_connection()
+    try:
+        cur = con.cursor()
+        # Проверяем существование
+        cur.execute("SELECT id FROM urls WHERE name = %s", (url_input,))
+        row = cur.fetchone()
+
+        if row:
+            url_id = row[0]
+            flash('Страница уже существует', 'info')
+        else:
+            # Вставляем новую строку
+            cur.execute(
+                "INSERT INTO urls (name, created_at) VALUES (%s, CURRENT_TIMESTAMP) RETURNING id",
+                (url_input,)
+            )
+            url_id = cur.fetchone()[0]
+            flash('Страница успешно добавлена', 'success')
+        
+        con.commit()
+        return redirect(url_for('url_detail', url_id=url_id))
+
+    except Exception:
+        flash('Ошибка базы данных', 'danger')
+        return render_template('index.html'), 422
+    finally:
+        cur.close()
+        con.close()
 
 # Страница со списком URL
 @app.route('/urls')
