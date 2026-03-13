@@ -19,40 +19,34 @@
 1. Требования
 * Python 3.10+
 * PostgreSQL
-* Poetry (менеджер зависимостей)
+* **uv** (менеджер пакетов)
 
 2. Клонирование репозитория
 ```bash
 git clone https://github.com/DemExt/python-project-83.git
 cd python-project-83
+uv sync
 
 3. Установка зависимостей
 bash
 make install
-Используйте код с осторожностью.
 
 4. Настройка окружения
 Создайте файл .env в корне проекта и добавьте в него секретный ключ и строку подключения к БД:
 env
 DATABASE_URL=postgresql://user:password@localhost:5432/dbname
 SECRET_KEY=your_very_secret_key
-Используйте код с осторожностью.
 
 5. Инициализация базы данных
 Выполните команды из файла database.sql в вашем клиенте PostgreSQL или через терминал:
 bash
 psql -d dbname -f database.sql
-Используйте код с осторожностью.
 
 6. Запуск приложения
-Локальный запуск (режим разработки):
-bash
-make dev
-Используйте код с осторожностью.
+uv run flask --app page_analyzer:app run
 
 Приложение будет доступно по адресу: http://localhost:5000
 Инструменты разработки
 Flask — веб-фреймворк.
 PostgreSQL — база данных.
 BeautifulSoup4 — парсинг HTML.
-Playwright — тестирование фронтенда.
